@@ -1,0 +1,32 @@
+{
+  "name": "amaRomachServer",
+  "version": "1.0.0",
+  "description": "node server",
+  "main": "index.js",
+  "dependencies": {
+    "koa": "^2.11.0",
+    "mongoose": "^5.9.6"
+  },
+  "devDependencies": {
+    "@types/mongoose": "^5.7.8",
+    "@types/node": "^13.9.5",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.8.1",
+    "typescript": "^3.8.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/main.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alon6699/amaRomachServer.git"
+  },
+  "keywords": [],
+  "author": "Alon Malivanchuk",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alon6699/amaRomachServer/issues"
+  },
+  "homepage": "https://github.com/alon6699/amaRomachServer#readme"
+}
