@@ -13,5 +13,8 @@ export const productSchema = new Schema(
             type: Number,
             min: 0
         }
+    },
+    {
+        versionKey: false
     }
 );

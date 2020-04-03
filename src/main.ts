@@ -2,27 +2,37 @@ import * as Koa from 'koa';
 import * as bodyParser from 'koa-bodyparser';
 import * as response from 'koa-respond';
 import * as mongoose from 'mongoose';
-import { devConfig } from '../config/env/dev.config';
+import * as config from '../config/env/config.json';
 import { router } from './routes/routes';
+import { logger } from '../config/winston/winston';
 
 const app = new Koa();
-
-connect();
-
 app
     .use(response())
     .use(bodyParser())
     .use(router.routes());
 
-function listen() {
-    app.listen(devConfig.port);
-    console.log('Express app started on port ' + devConfig.port);
-}
+connect();
 
 function connect() {
+    logger.info('trying to connect to DB');
     mongoose.connection
-        .on('error', console.log)
-        .on('disconnected', connect)
+        .on('error', logger.error)
+        .on('disconnected', retryConnection)
         .once('open', listen);
-    return mongoose.connect(devConfig.dbConnectionString, { useNewUrlParser: true, useUnifiedTopology: true });
+    return mongoose.connect(config.dbConnectionString, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false });
 }
+
+function listen() {
+    logger.info('connection establish to DB');
+    app.listen(config.port);
+    logger.info('server is up and listen on port ' + config.port);
+}
+
+function retryConnection() {
+    logger.info('retrying to connect to DB');
+    connect();
+}
+
+
+
