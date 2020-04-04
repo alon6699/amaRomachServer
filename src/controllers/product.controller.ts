@@ -67,7 +67,7 @@ export async function addProduct(ctx: Context) {
             if (!error) {
                 const product: Product = await Product.create(productToAdd);
                 if (product) {
-                    ctx.ok(product);
+                    ctx.created(product);
                     logger.info(`Create new product ${JSON.stringify(product)}`);
                 }
             } else {
@@ -89,9 +89,9 @@ export async function addProduct(ctx: Context) {
 
 export async function deleteProduct(ctx: Context) {
     try {
-        const { deletedCount } = await Product.deleteOne({ 'name': ctx.params.name });
-        if (deletedCount === 1) {
-            ctx.ok(ctx.params.name);
+        const product: Product = await Product.findOneAndDelete({ 'name': ctx.params.name });
+        if (product) {
+            ctx.ok(product);
             logger.info('Product ' + ctx.params.name + ' was deleted Successfully');
         } else {
             ctx.notFound(`Product ${ctx.params.name} does not exist`);
