@@ -2,12 +2,13 @@ import { Context } from 'koa';
 import { model } from "mongoose";
 import { productSchema } from "../schemas/product.schema";
 import { logger } from '../../config/winston/winston';
+import { Product } from '../models/product.model';
 
-const Product = model('Product', productSchema);
+const Product = model<Product>('Product', productSchema);
 
 export async function products(ctx: Context) {
     try {
-        const products = await Product.find();
+        const products: Product[] = await Product.find();
         ctx.ok(products);
     } catch (error) {
         serverInternalError(ctx, error);
@@ -21,7 +22,7 @@ export async function findProduct(ctx: Context) {
             ctx.ok(product)
             logger.info('find product by name ' + ctx.params.name);
         } else {
-            ctx.notFound();
+            ctx.notFound(ctx.params.name);
             logger.error('invalid name ' + ctx.params.name);
         }
     } catch (error) {
@@ -33,8 +34,8 @@ export async function updateProduct(ctx: Context) {
     try {
         //TODO: make product validation
         if (ctx.request.body.product) {
-            const productToUpdate = ctx.request.body.product;
-            const product = await Product.findOneAndUpdate({ name: productToUpdate.name }, productToUpdate, { new: true });
+            const productToUpdate: Product = ctx.request.body.product;
+            const product: Product = await Product.findOneAndUpdate({ name: productToUpdate.name }, productToUpdate, { new: true });
             if (product) {
                 ctx.ok(product);
                 logger.info('update product by name ' + productToUpdate.name);
@@ -56,7 +57,7 @@ export async function addProduct(ctx: Context) {
         //TODO: make product validation
         if (ctx.request.body.product) {
             const productToAdd = ctx.request.body.product;
-            const product = await Product.create(productToAdd);
+            const product: Product = await Product.create(productToAdd);
             if (product) {
                 ctx.ok(product);
                 logger.info('Create new product' + JSON.stringify(product));
@@ -66,7 +67,12 @@ export async function addProduct(ctx: Context) {
             logger.error('Cannot create product. Received undefined product in body request');
         }
     } catch (error) {
-        serverInternalError(ctx, error);
+        if (error.name === 'MongoError' && error.code === 11000) {
+            ctx.send(409, 'Product is already existing');
+            logger.error('Product with name' + ctx.request.body.product + ' is already existing. ' + error);
+        } else {
+            serverInternalError(ctx, error);
+        }
     }
 }
 
@@ -86,6 +92,6 @@ export async function deleteProduct(ctx: Context) {
 }
 
 const serverInternalError = (ctx: Context, error: Error) => {
-    ctx.internalServerError(500);
+    ctx.internalServerError();
     logger.error(error);
 }
