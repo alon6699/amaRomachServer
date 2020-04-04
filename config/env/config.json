@@ -1,7 +1,7 @@
 {
     "port": 3000,
     "db": {
-        "url" : "mongodb://localhost1:27017/shop",
+        "url" : "mongodb://localhost:27017/shop",
         "options": {
             "useNewUrlParser": true, 
             "useUnifiedTopology": true, 
