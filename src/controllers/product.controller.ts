@@ -3,6 +3,7 @@ import { model } from "mongoose";
 import { productSchema } from "../schemas/product.schema";
 import { logger } from '../../config/winston/winston';
 import { Product } from '../models/product.model';
+import { productValidationSchema } from '../validation/product.validation';
 
 const Product = model<Product>('Product', productSchema);
 
@@ -32,16 +33,21 @@ export async function findProduct(ctx: Context) {
 
 export async function updateProduct(ctx: Context) {
     try {
-        //TODO: make product validation
         if (ctx.request.body.product) {
             const productToUpdate: Product = ctx.request.body.product;
-            const product: Product = await Product.findOneAndUpdate({ name: productToUpdate.name }, productToUpdate, { new: true });
-            if (product) {
-                ctx.ok(product);
-                logger.info('update product by name ' + productToUpdate.name);
+            const { error } = productValidationSchema.validate(productToUpdate);
+            if (!error) {
+                const product: Product = await Product.findOneAndUpdate({ name: productToUpdate.name }, productToUpdate, { new: true });
+                if (product) {
+                    ctx.ok(product);
+                    logger.info('update product by name ' + productToUpdate.name);
+                } else {
+                    ctx.notFound(productToUpdate);
+                    logger.error('invalid name ' + productToUpdate.name);
+                }
             } else {
-                ctx.notFound(productToUpdate);
-                logger.error('invalid name ' + productToUpdate.name);
+                ctx.badRequest('invalid product structure ' + error);
+                logger.error('invalid product structure ' + error);
             }
         } else {
             ctx.badRequest();
@@ -54,17 +60,22 @@ export async function updateProduct(ctx: Context) {
 
 export async function addProduct(ctx: Context) {
     try {
-        //TODO: make product validation
         if (ctx.request.body.product) {
             const productToAdd = ctx.request.body.product;
-            const product: Product = await Product.create(productToAdd);
-            if (product) {
-                ctx.ok(product);
-                logger.info('Create new product' + JSON.stringify(product));
+            const { error } = productValidationSchema.validate(productToAdd);
+            if (!error) {
+                const product: Product = await Product.create(productToAdd);
+                if (product) {
+                    ctx.ok(product);
+                    logger.info('Create new product' + JSON.stringify(product));
+                }
+            } else {
+                ctx.badRequest('invalid product structure ' + error);
+                logger.error('invalid product structure ' + error);
             }
         } else {
             ctx.badRequest();
-            logger.error('Cannot create product. Received undefined product in body request');
+            logger.error('received undefined product');
         }
     } catch (error) {
         if (error.name === 'MongoError' && error.code === 11000) {
