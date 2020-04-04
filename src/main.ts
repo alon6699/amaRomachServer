@@ -20,6 +20,6 @@ listen();
 function listen() {
     const port: number = nconf.get('port');
     app.listen(port);
-    logger.info('server is up and listen on port ' + port);
+    logger.info('Server is up and listen on port ' + port);
     connectToDB();
 }
