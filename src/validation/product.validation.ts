@@ -1,6 +1,6 @@
 import * as Joi from 'Joi';
 
-export const productValidationSchema = Joi.object({
+export const productValidationSchema: Joi.ObjectSchema = Joi.object({
     name: Joi.string()
         .alphanum()
         .min(1)

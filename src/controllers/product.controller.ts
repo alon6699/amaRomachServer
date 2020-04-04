@@ -20,7 +20,7 @@ export async function findProduct(ctx: Context) {
     try {
         const product = await Product.findOne({ 'name': ctx.params.name });
         if (product) {
-            ctx.ok(product)
+            ctx.ok(product);
             logger.info('find product by name ' + ctx.params.name);
         } else {
             ctx.notFound(ctx.params.name);
