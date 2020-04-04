@@ -1,11 +1,11 @@
 import { Context } from 'koa';
-import { model } from "mongoose";
+import { model, Model } from "mongoose";
 import { productSchema } from "../schemas/product.schema";
 import { logger } from '../../config/winston/winston';
 import { Product } from '../models/product.model';
 import { validatePartialProduct, validateProduct } from '../validation/product.validation';
 
-const Product = model<Product>('Product', productSchema);
+const Product: Model<Product> = model<Product>('Product', productSchema);
 
 export async function getProducts(ctx: Context) {
     try {
@@ -24,8 +24,9 @@ export async function findProduct(ctx: Context) {
             ctx.ok(product);
             logger.info(`find product by name ${ctx.params.name}`);
         } else {
-            ctx.notFound('invalid name ' + ctx.params.name);
-            logger.error('invalid name ' + ctx.params.name);
+            const errorMessage: string = 'invalid name ' + ctx.params.name;
+            ctx.notFound(errorMessage);
+            logger.error(errorMessage);
         }
     } catch (error) {
         serverInternalError(ctx, error);
@@ -41,7 +42,7 @@ export async function updateProduct(ctx: Context) {
                 const product: Product = await Product.findOneAndUpdate({ name: productToUpdate.name }, productToUpdate, { new: true });
                 if (product) {
                     ctx.ok(product);
-                    logger.info(`update product by name ${productToUpdate.name} with data: ${JSON.stringify(productToUpdate)}`);
+                    logger.info(`update product by name ${product.name} with data: ${JSON.stringify(product)}`);
                 } else {
                     ctx.notFound(`invalid name ${productToUpdate.name}`);
                     logger.error(`invalid name ${productToUpdate.name}`);
