@@ -1,18 +1,20 @@
-import { connection, connect } from 'mongoose';
-import { dbConnectionString } from '../config/env/config.json';
+import * as mongoose from 'mongoose';
 import { logger } from '../config/winston/winston';
+import * as  nconf from 'nconf';
 
 export function connectToDB() {
     logger.info('trying to connect to DB');
-    connection
-        .on('error', logger.error)
-        // TODO: check db retry connection
-        .on('disconnected', retryConnection)
-        .once('open', () => logger.info('connection establish to DB'));
-    return connect(dbConnectionString, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false });
+    mongoose.connect(nconf.get('db:url'), nconf.get('db:options')).catch(logger.error);
 }
 
+mongoose.set('bufferCommands', false);
+mongoose.connection
+    .on('error', logger.error)
+    .on('disconnected', retryConnection)
+    .once('connected', () => logger.info('MongoDB connected!'))
+    .once('open', () => logger.info('MongoDB connection opened'));
+
 function retryConnection() {
-    logger.info('retrying to connect to DB');
+    logger.info('retrying to reconnect to DB');
     connectToDB();
 }

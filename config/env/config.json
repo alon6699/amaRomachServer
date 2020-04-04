@@ -1,4 +1,12 @@
 {
-    "dbConnectionString": "mongodb://localhost:27017/shop",
-    "port": 3000
+    "port": 3000,
+    "db": {
+        "url" : "mongodb://localhost1:27017/shop",
+        "options": {
+            "useNewUrlParser": true, 
+            "useUnifiedTopology": true, 
+            "useFindAndModify": false,
+            "serverSelectionTimeoutMS": 10000
+        }
+    }
 }

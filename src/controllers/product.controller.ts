@@ -103,7 +103,7 @@ export async function deleteProduct(ctx: Context) {
 
 function serverInternalError(ctx: Context, error: Error) {
     ctx.internalServerError();
-    logger.error(error);
+    logger.error(error.message);
 }
 
 function handleInvalidProductStructure(ctx: Context, error: Error) {
