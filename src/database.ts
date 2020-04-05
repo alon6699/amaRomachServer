@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { logger } from '../config/winston/winston';
+import { logger } from './logger/logger';
 import * as  nconf from 'nconf';
 
 export function connectToDB() {

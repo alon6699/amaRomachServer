@@ -1,13 +1,14 @@
+import * as init from './init'; 
 import * as Koa from 'koa';
 import * as bodyParser from 'koa-bodyparser';
 import * as response from 'koa-respond';
-
-import { logger } from '../config/winston/winston';
-import { connectToDB } from './database';
-import { productRoutes } from './routes/product.routes';
 import * as  nconf from 'nconf';
 
-nconf.argv().env().file({file: 'src/../config/env/config.json'});
+import { logger } from './logger/logger';
+import { connectToDB } from './database';
+import { productRoutes } from './routes/product.routes';
+
+init;
 
 const app: Koa = new Koa();
 app
@@ -19,7 +20,8 @@ listen();
 
 function listen() {
     const port: number = nconf.get('port');
-    app.listen(port);
-    logger.info('Server is up and listen on port ' + port);
-    connectToDB();
+    app.listen(port, () => {
+        logger.info('Server is up and listen on port ' + port);
+        connectToDB();
+    });
 }

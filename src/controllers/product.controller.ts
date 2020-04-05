@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 import { model, Model } from "mongoose";
 import { productSchema } from "../schemas/product.schema";
-import { logger } from '../../config/winston/winston';
+import { logger } from '../logger/logger';
 import { Product } from '../models/product.model';
 import { validatePartialProduct, validateProduct } from '../validation/product.validation';
 
