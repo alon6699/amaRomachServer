@@ -9,7 +9,6 @@
     "koa-bodyparser": "^4.3.0",
     "koa-respond": "^2.1.0",
     "koa-router": "^8.0.8",
-    "mongodb": "^3.5.5",
     "mongoose": "^5.9.7",
     "nconf": "^0.10.0",
     "winston": "^3.2.1"

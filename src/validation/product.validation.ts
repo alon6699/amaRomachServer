@@ -17,10 +17,10 @@ export const productValidationSchema: Joi.ObjectSchema = Joi.object({
         .optional()
 });
 
-export function validateProduct(product: Product): Joi.ValidationResult<Product> {
+export const validateProduct = (product: Product): Joi.ValidationResult<Product> => {
     return productValidationSchema.validate(product, { abortEarly: false, presence: 'required' });
 }
 
-export function validatePartialProduct(product: Partial<Product>): Joi.ValidationResult<Partial<Product>> {
+export const validatePartialProduct = (product: Partial<Product>): Joi.ValidationResult<Partial<Product>> => {
     return productValidationSchema.validate(product, { abortEarly: false });
 }

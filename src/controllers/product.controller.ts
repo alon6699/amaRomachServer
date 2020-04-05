@@ -1,15 +1,12 @@
 import { Context } from 'koa';
-import { model, Model } from "mongoose";
-import { productSchema } from "../schemas/product.schema";
+import { ProductSchema } from "../schemas/product.schema";
 import { logger } from '../logger/logger';
 import { Product } from '../models/product.model';
 import { validatePartialProduct, validateProduct } from '../validation/product.validation';
 
-const Product: Model<Product> = model<Product>('Product', productSchema);
-
-export async function getProducts(ctx: Context) {
+export const getProducts = async (ctx: Context) => {
     try {
-        const products: Product[] = await Product.find();
+        const products: Product[] = await ProductSchema.find();
         ctx.ok(products);
         logger.info('Get all products');
     } catch (error) {
@@ -17,9 +14,9 @@ export async function getProducts(ctx: Context) {
     }
 }
 
-export async function findProduct(ctx: Context) {
+export const findProduct = async (ctx: Context) => {
     try {
-        const product = await Product.findOne({ 'name': ctx.params.name });
+        const product: Product = await ProductSchema.findOne({ 'name': ctx.params.name });
         if (product) {
             ctx.ok(product);
             logger.info(`Find product by name ${ctx.params.name}`);
@@ -33,13 +30,13 @@ export async function findProduct(ctx: Context) {
     }
 }
 
-export async function updateProduct(ctx: Context) {
+export const updateProduct = async (ctx: Context) => {
     try {
-        if (ctx.request.body.product) {
-            const productToUpdate: Product = ctx.request.body.product;
+        const productToUpdate: Product = ctx.request.body.product;
+        if (productToUpdate) {
             const { error } = validatePartialProduct(productToUpdate);
             if (!error) {
-                const product: Product = await Product.findOneAndUpdate({ name: productToUpdate.name }, productToUpdate, { new: true });
+                const product: Product = await ProductSchema.findOneAndUpdate({ name: productToUpdate.name }, productToUpdate, { new: true });
                 if (product) {
                     ctx.ok(product);
                     logger.info(`Update product by name ${product.name} with data: ${JSON.stringify(product)}`);
@@ -59,17 +56,15 @@ export async function updateProduct(ctx: Context) {
     }
 }
 
-export async function addProduct(ctx: Context) {
+export const createProduct = async (ctx: Context) => {
     try {
-        if (ctx.request.body.product) {
-            const productToAdd = ctx.request.body.product;
+        const productToAdd = ctx.request.body.product;
+        if (productToAdd) {
             const { error } = validateProduct(productToAdd);
             if (!error) {
-                const product: Product = await Product.create(productToAdd);
-                if (product) {
-                    ctx.created(product);
-                    logger.info(`Create new product ${JSON.stringify(product)}`);
-                }
+                const product: Product = await ProductSchema.create(productToAdd);
+                ctx.created(product);
+                logger.info(`Create new product ${JSON.stringify(product)}`);
             } else {
                 handleInvalidProductStructure(ctx, error);
             }
@@ -80,19 +75,19 @@ export async function addProduct(ctx: Context) {
     } catch (error) {
         if (error.name === 'MongoError' && error.code === 11000) {
             ctx.send(409, `Product ${ctx.request.body.product.name} is already existing`);
-            logger.error(`Product with name ${ctx.request.body.product} is already existing. ${error}`);
+            logger.error(`Product with name ${ctx.request.body.product} is already exists. ${error}`);
         } else {
             serverInternalError(ctx, error);
         }
     }
 }
 
-export async function deleteProduct(ctx: Context) {
+export const deleteProduct = async (ctx: Context) => {
     try {
-        const product: Product = await Product.findOneAndDelete({ 'name': ctx.params.name });
+        const product: Product = await ProductSchema.findOneAndDelete({ 'name': ctx.params.name });
         if (product) {
             ctx.ok(product);
-            logger.info('Product ' + ctx.params.name + ' was deleted Successfully');
+            logger.info(`Product ${ctx.params.name} was deleted Successfully`);
         } else {
             ctx.notFound(`Product ${ctx.params.name} does not exist`);
             logger.error(`Cannot delete product. Invalid name ${ctx.params.name}`);
@@ -102,12 +97,12 @@ export async function deleteProduct(ctx: Context) {
     }
 }
 
-function serverInternalError(ctx: Context, error: Error) {
+const serverInternalError = (ctx: Context, error: Error) => {
     ctx.internalServerError();
     logger.error(error.message);
 }
 
-function handleInvalidProductStructure(ctx: Context, error: Error) {
+const handleInvalidProductStructure = (ctx: Context, error: Error) => {
     const errorMessage: string = `Invalid product structure ${error}`;
     ctx.badRequest(errorMessage);
     logger.error(errorMessage);
