@@ -5,105 +5,46 @@ import { Product } from '../models/product.model';
 import { validatePartialProduct, validateProduct } from '../validation/product.validation';
 
 export const getProducts = async (ctx: Context) => {
-    try {
-        const products: Product[] = await ProductSchema.find();
-        ctx.ok(products);
-        logger.info('Get all products');
-    } catch (error) {
-        serverInternalError(ctx, error);
-    }
+    const products: Product[] = await ProductSchema.find();
+    ctx.ok(products);
 }
 
 export const findProduct = async (ctx: Context) => {
-    try {
-        const product: Product = await ProductSchema.findOne({ 'name': ctx.params.name });
-        if (product) {
-            ctx.ok(product);
-            logger.info(`Find product by name ${ctx.params.name}`);
-        } else {
-            const errorMessage: string = 'Invalid name ' + ctx.params.name;
-            ctx.notFound(errorMessage);
-            logger.error(errorMessage);
-        }
-    } catch (error) {
-        serverInternalError(ctx, error);
-    }
+    const product: Product = await ProductSchema.findOne({ '_id': ctx.params.id });
+    product ? ctx.ok(product) : ctx.throwNotFound(`Invalid id ${ctx.params.id}`);
 }
 
 export const updateProduct = async (ctx: Context) => {
-    try {
-        const productToUpdate: Product = ctx.request.body.product;
-        if (productToUpdate) {
-            const { error } = validatePartialProduct(productToUpdate);
-            if (!error) {
-                const product: Product = await ProductSchema.findOneAndUpdate({ name: productToUpdate.name }, productToUpdate, { new: true });
-                if (product) {
-                    ctx.ok(product);
-                    logger.info(`Update product by name ${product.name} with data: ${JSON.stringify(product)}`);
-                } else {
-                    ctx.notFound(`Invalid name ${productToUpdate.name}`);
-                    logger.error(`Invalid name ${productToUpdate.name}`);
-                }
-            } else {
-                handleInvalidProductStructure(ctx, error);
-            }
+    const productToUpdate: Product = ctx.request.body.product;
+    if (productToUpdate) {
+        const { error } = validatePartialProduct(productToUpdate);
+        if (!error) {
+            const product: Product = await ProductSchema.findOneAndUpdate({ _id: ctx.params.id }, productToUpdate, { new: true });
+            product ? ctx.ok(product) : ctx.throwNotFound(`Invalid id ${ctx.params.id}`);
         } else {
-            ctx.badRequest();
-            logger.error('Received undefined product');
+            ctx.throwBadRequest(`Invalid product structure ${error}`);
         }
-    } catch (error) {
-        serverInternalError(ctx, error);
+    } else {
+        ctx.throwBadRequest('Received undefined product');
     }
 }
 
 export const createProduct = async (ctx: Context) => {
-    try {
-        const productToAdd = ctx.request.body.product;
-        if (productToAdd) {
-            const { error } = validateProduct(productToAdd);
-            if (!error) {
-                const product: Product = await ProductSchema.create(productToAdd);
-                ctx.created(product);
-                logger.info(`Create new product ${JSON.stringify(product)}`);
-            } else {
-                handleInvalidProductStructure(ctx, error);
-            }
+    const productToAdd = ctx.request.body.product;
+    if (productToAdd) {
+        const { error } = validateProduct(productToAdd);
+        if (!error) {
+            const product: Product = await ProductSchema.create(productToAdd);
+            ctx.created(product);
         } else {
-            ctx.badRequest('Received undefined product');
-            logger.error('Received undefined product');
+            ctx.throwBadRequest(`Invalid product structure ${error}`);
         }
-    } catch (error) {
-        if (error.name === 'MongoError' && error.code === 11000) {
-            ctx.send(409, `Product ${ctx.request.body.product.name} is already existing`);
-            logger.error(`Product with name ${ctx.request.body.product} is already exists. ${error}`);
-        } else {
-            serverInternalError(ctx, error);
-        }
+    } else {
+        ctx.throwBadRequest('Received undefined product');
     }
 }
 
 export const deleteProduct = async (ctx: Context) => {
-    try {
-        const product: Product = await ProductSchema.findOneAndDelete({ 'name': ctx.params.name });
-        if (product) {
-            ctx.ok(product);
-            logger.info(`Product ${ctx.params.name} was deleted Successfully`);
-        } else {
-            ctx.notFound(`Product ${ctx.params.name} does not exist`);
-            logger.error(`Cannot delete product. Invalid name ${ctx.params.name}`);
-        }
-    } catch (error) {
-        serverInternalError(ctx, error);
-    }
-}
-
-const serverInternalError = (ctx: Context, error: Error) => {
-    ctx.internalServerError();
-    logger.error(error.message);
-}
-
-const handleInvalidProductStructure = (ctx: Context, error: Error) => {
-    const errorMessage: string = `Invalid product structure ${error}`;
-    ctx.badRequest(errorMessage);
-    logger.error(errorMessage);
+    const product: Product = await ProductSchema.findOneAndDelete({ '_id': ctx.params.id });
+    product ? ctx.ok(product) : ctx.throwNotFound(`Product ${ctx.params.id} does not exist`);
 }

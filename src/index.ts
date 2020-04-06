@@ -1,10 +1,10 @@
 import * as init from './init';
 import * as Koa from 'koa';
 import * as bodyParser from 'koa-bodyparser';
-import * as response from 'koa-respond';
+import * as respond from 'koa-respond';
 import * as  nconf from 'nconf';
 
-import { logger } from './logger/logger';
+import { logger, koaLogger } from './logger/logger';
 import { connectToDB } from './database/database';
 import { productRoutes } from './routes/product.routes';
 
@@ -12,8 +12,25 @@ init;
 
 const app: Koa = new Koa();
 app
-    .use(response())
+    .use(respond({
+        methods: {
+          throwBadRequest: (ctx, message) => {
+            ctx.throw(400, message);
+          },
+          throwNotFound: (ctx, message) => {
+            ctx.throw(404, message);
+          }
+        }
+      }))
     .use(bodyParser())
+    .use(koaLogger)
+    .use(async (ctx:  Koa.Context, next: Koa.Next) => {
+        try {
+            await next();
+        } catch(error) {
+            logger.error(`response ${error.status} ${error.message}`);
+        }
+    })
     .use(productRoutes.routes());
 
 const listen = () => {
