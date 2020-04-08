@@ -10,9 +10,11 @@ export const logger = winston.createLogger({
     exitOnError: false,
 });
 
-export const koaLogger = async (ctx: Context, next: Next) => {
-    logger.info(`received request from url ${ctx.url}`);
-    await next();
-    const message = `response status ${ctx.status}, data: ${ctx.message}`;
-    ctx.status >= 400 ? logger.error(message) : logger.info(message)
-};
+export const loggerMiddleware = () => {
+    return async (ctx: Context, next: Next) => {
+        logger.info(`received request from url ${ctx.url}`);
+        await next();
+        const message = `response status ${ctx.status}, data: ${ctx.message}`;
+        ctx.status >= 400 ? logger.error(message) : logger.info(message)
+    };
+}

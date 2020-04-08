@@ -4,7 +4,7 @@ import * as bodyParser from 'koa-bodyparser';
 import * as respond from 'koa-respond';
 import * as  nconf from 'nconf';
 
-import { logger, koaLogger } from './logger/logger';
+import { logger, loggerMiddleware } from './logger/logger';
 import { connectToDB } from './database/database';
 import { productRoutes } from './routes/product.routes';
 
@@ -14,21 +14,24 @@ const app: Koa = new Koa();
 app
     .use(respond({
         methods: {
-          throwBadRequest: (ctx, message) => {
-            ctx.throw(400, message);
-          },
-          throwNotFound: (ctx, message) => {
-            ctx.throw(404, message);
-          }
+            throwBadRequest: (ctx, message) => {
+                ctx.throw(400, message);
+            },
+            throwNotFound: (ctx, message) => {
+                ctx.throw(404, message);
+            }
         }
-      }))
+    }))
     .use(bodyParser())
-    .use(koaLogger)
-    .use(async (ctx:  Koa.Context, next: Koa.Next) => {
+    .use(loggerMiddleware())
+    .use(async (ctx: Koa.Context, next: Koa.Next) => {
         try {
             await next();
-        } catch(error) {
-            logger.error(`response ${error.status} ${error.message}`);
+        } catch (error) {
+            if (error.name === 'ValidationError') {
+                ctx.badRequest(`Invalid product structure ${error.message}`);
+            }
+            logger.error(`response ${error.status || ctx.status} ${error.message}`);
         }
     })
     .use(productRoutes.routes());

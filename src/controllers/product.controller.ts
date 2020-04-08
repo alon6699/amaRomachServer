@@ -1,50 +1,47 @@
-import { Context } from 'koa';
-import { ProductSchema } from "../schemas/product.schema";
-import { logger } from '../logger/logger';
+import { Context, Next } from 'koa';
+
 import { Product } from '../models/product.model';
 import { validatePartialProduct, validateProduct } from '../validation/product.validation';
+import { findProductQuery, getProductsQuery, updateProductQuery, createProductQuery, deleteProductQuery } from '../database/product.queries';
 
-export const getProducts = async (ctx: Context) => {
-    const products: Product[] = await ProductSchema.find();
+export const getProducts = async (ctx: Context, next: Next) => {
+    const products: Product[] = await getProductsQuery();
     ctx.ok(products);
+    await next();
 }
 
-export const findProduct = async (ctx: Context) => {
-    const product: Product = await ProductSchema.findOne({ '_id': ctx.params.id });
+export const findProduct = async (ctx: Context, next: Next) => {
+    const product: Product = await findProductQuery(ctx.params.id);
     product ? ctx.ok(product) : ctx.throwNotFound(`Invalid id ${ctx.params.id}`);
+    await next();
 }
 
-export const updateProduct = async (ctx: Context) => {
+export const updateProduct = async (ctx: Context, next: Next) => {
     const productToUpdate: Product = ctx.request.body.product;
     if (productToUpdate) {
-        const { error } = validatePartialProduct(productToUpdate);
-        if (!error) {
-            const product: Product = await ProductSchema.findOneAndUpdate({ _id: ctx.params.id }, productToUpdate, { new: true });
-            product ? ctx.ok(product) : ctx.throwNotFound(`Invalid id ${ctx.params.id}`);
-        } else {
-            ctx.throwBadRequest(`Invalid product structure ${error}`);
-        }
+        validatePartialProduct(productToUpdate, 'Invalid product structure ');
+        const product: Product = await updateProductQuery(ctx.params.id, productToUpdate);
+        product ? ctx.ok(product) : ctx.throwNotFound(`Invalid id ${ctx.params.id}`);
     } else {
         ctx.throwBadRequest('Received undefined product');
     }
+    await next();
 }
 
-export const createProduct = async (ctx: Context) => {
-    const productToAdd = ctx.request.body.product;
-    if (productToAdd) {
-        const { error } = validateProduct(productToAdd);
-        if (!error) {
-            const product: Product = await ProductSchema.create(productToAdd);
-            ctx.created(product);
-        } else {
-            ctx.throwBadRequest(`Invalid product structure ${error}`);
-        }
+export const createProduct = async (ctx: Context, next: Next) => {
+    const productToCreate = ctx.request.body.product;
+    if (productToCreate) {
+        validateProduct(productToCreate, 'Invalid product structure ');
+        const product: Product = await createProductQuery(productToCreate);
+        ctx.created(product);
     } else {
         ctx.throwBadRequest('Received undefined product');
     }
+    await next();
 }
 
-export const deleteProduct = async (ctx: Context) => {
-    const product: Product = await ProductSchema.findOneAndDelete({ '_id': ctx.params.id });
+export const deleteProduct = async (ctx: Context, next: Next) => {
+    const product: Product = await deleteProductQuery(ctx.params.id);
     product ? ctx.ok(product) : ctx.throwNotFound(`Product ${ctx.params.id} does not exist`);
+    await next();
 }
