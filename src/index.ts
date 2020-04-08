@@ -1,4 +1,4 @@
-import * as init from './init';
+import './init';
 import * as Koa from 'koa';
 import * as bodyParser from 'koa-bodyparser';
 import * as respond from 'koa-respond';
@@ -11,7 +11,6 @@ import { errorHandlerMiddleware } from './middleware/errors/errors-handler.middl
 import { loggerMiddleware } from './middleware/logger/logger.middleware';
 import { respondOptions } from './middleware/models/koa-respond.model';
 
-init;
 
 const app: Koa = new Koa();
 app
