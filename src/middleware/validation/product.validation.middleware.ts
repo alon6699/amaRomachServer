@@ -30,7 +30,7 @@ export const validatePartialProductMiddleware = async (ctx: Context, next: Next)
 const validateProduct = async (ctx: Context, next: Next, joiOptions: Joi.ValidationOptions): Promise<void> => {
     const product: Product = ctx.request.body.product;
     if (!product) {
-        ctx.throwBadRequest('Received undefined product in request body');
+        ctx.throwBadRequest('Received undefined product in body request');
     }
     const { error } = productValidationSchema.validate(product, joiOptions);
     if (error) {
