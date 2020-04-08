@@ -1,7 +1,23 @@
 import { Context, Next } from "koa";
-import { ValidationOptions } from 'joi';
+import * as Joi from 'Joi';
+
 import { Product } from "../../models/product.model";
-import { productValidationSchema } from "../../validation/product.validation";
+
+const productValidationSchema: Joi.ObjectSchema = Joi.object({
+    name: Joi.string()
+        .alphanum()
+        .min(1)
+        .max(30)
+        .required(),
+    description: Joi.string()
+        .allow(''),
+    image: Joi.string(),
+    price: Joi.number()
+        .min(0),
+    limit: Joi.number()
+        .min(0)
+        .optional()
+});
 
 export const validateProductMiddleware = async (ctx: Context, next: Next): Promise<void> => {
     return validateProduct(ctx, next, { abortEarly: false, presence: 'required' });
@@ -11,7 +27,7 @@ export const validatePartialProductMiddleware = async (ctx: Context, next: Next)
     return validateProduct(ctx, next, { abortEarly: false });
 }
 
-const validateProduct = async (ctx: Context, next: Next, joiOptions: ValidationOptions): Promise<void> => {
+const validateProduct = async (ctx: Context, next: Next, joiOptions: Joi.ValidationOptions): Promise<void> => {
     const product: Product = ctx.request.body.product;
     if (!product) {
         ctx.throwBadRequest('Received undefined product in request body');
