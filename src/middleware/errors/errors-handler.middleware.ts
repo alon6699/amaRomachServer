@@ -7,9 +7,6 @@ export const errorMiddleware = () => {
         try {
             await next();
         } catch (error) {
-            if (error.name === 'ValidationError') {
-                ctx.badRequest(`Invalid product structure ${error.message}`);
-            }
             logger.error(`Error ${error.message}`);
         }
     }
