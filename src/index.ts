@@ -4,36 +4,21 @@ import * as bodyParser from 'koa-bodyparser';
 import * as respond from 'koa-respond';
 import * as  nconf from 'nconf';
 
-import { logger, loggerMiddleware } from './logger/logger';
+import { logger } from './logger/logger';
 import { connectToDB } from './database/database';
-import { productRoutes } from './routes/product.routes';
+import { productRoutes } from './middleware/routes/product.routes.middleware';
+import { errorHandlerMiddleware } from './middleware/errors/errors-handler.middleware';
+import { loggerMiddleware } from './middleware/logger/logger.middleware';
+import { respondOptions } from './middleware/models/koa-respond.model';
 
 init;
 
 const app: Koa = new Koa();
 app
-    .use(respond({
-        methods: {
-            throwBadRequest: (ctx, message) => {
-                ctx.throw(400, message);
-            },
-            throwNotFound: (ctx, message) => {
-                ctx.throw(404, message);
-            }
-        }
-    }))
+    .use(respond(respondOptions))
     .use(bodyParser())
     .use(loggerMiddleware())
-    .use(async (ctx: Koa.Context, next: Koa.Next) => {
-        try {
-            await next();
-        } catch (error) {
-            if (error.name === 'ValidationError') {
-                ctx.badRequest(`Invalid product structure ${error.message}`);
-            }
-            logger.error(`response ${error.status || ctx.status} ${error.message}`);
-        }
-    })
+    .use(errorHandlerMiddleware())
     .use(productRoutes.routes());
 
 const listen = () => {

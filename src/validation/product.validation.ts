@@ -17,19 +17,19 @@ export const productValidationSchema: Joi.ObjectSchema = Joi.object({
         .optional()
 });
 
-export const validateProduct = (product: Product, errorPrefix?: string): Product => {
+export const validateProduct = (product: Product): Product => {
     const { error, value } = productValidationSchema.validate(product, { abortEarly: false, presence: 'required' });
-    return handleValidation(value, error, errorPrefix);
+    return handleValidation(value, error);
 }
 
-export const validatePartialProduct = (product: Partial<Product>, errorPrefix?: string): Partial<Product> => {
+export const validatePartialProduct = (product: Partial<Product>): Partial<Product> => {
     const { error, value } = productValidationSchema.validate(product, { abortEarly: false, presence: 'required' });
-    return handleValidation(value, error, errorPrefix);
+    return handleValidation(value, error);
 }
 
-const handleValidation = <T>(value: T, error: Error, errorPrefix: string): T => {
+const handleValidation = <T>(value: T, error: Error): T => {
     if (error) {
-        error.message = errorPrefix + error.message;
+        error.message = 'Invalid product structure ' + error.message;
         throw error;
     }
     return value;

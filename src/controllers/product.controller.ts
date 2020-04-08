@@ -18,25 +18,17 @@ export const findProduct = async (ctx: Context, next: Next) => {
 
 export const updateProduct = async (ctx: Context, next: Next) => {
     const productToUpdate: Product = ctx.request.body.product;
-    if (productToUpdate) {
-        validatePartialProduct(productToUpdate, 'Invalid product structure ');
-        const product: Product = await updateProductQuery(ctx.params.id, productToUpdate);
-        product ? ctx.ok(product) : ctx.throwNotFound(`Invalid id ${ctx.params.id}`);
-    } else {
-        ctx.throwBadRequest('Received undefined product');
-    }
+    validatePartialProduct(productToUpdate);
+    const product: Product = await updateProductQuery(ctx.params.id, productToUpdate);
+    product ? ctx.ok(product) : ctx.throwNotFound(`Invalid id ${ctx.params.id}`);
     await next();
 }
 
 export const createProduct = async (ctx: Context, next: Next) => {
     const productToCreate = ctx.request.body.product;
-    if (productToCreate) {
-        validateProduct(productToCreate, 'Invalid product structure ');
-        const product: Product = await createProductQuery(productToCreate);
-        ctx.created(product);
-    } else {
-        ctx.throwBadRequest('Received undefined product');
-    }
+    validateProduct(productToCreate);
+    const product: Product = await createProductQuery(productToCreate);
+    ctx.created(product);
     await next();
 }
 
