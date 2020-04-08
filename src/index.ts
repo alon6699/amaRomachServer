@@ -7,17 +7,16 @@ import * as  nconf from 'nconf';
 import { logger } from './logger/logger';
 import { connectToDB } from './database/database';
 import { productRoutes } from './middleware/routes/product.routes.middleware';
-import { errorHandlerMiddleware } from './middleware/errors/errors-handler.middleware';
+import { errorMiddleware } from './middleware/errors/errors-handler.middleware';
 import { loggerMiddleware } from './middleware/logger/logger.middleware';
 import { respondOptions } from './middleware/models/koa-respond.model';
-
 
 const app: Koa = new Koa();
 app
     .use(respond(respondOptions))
     .use(bodyParser())
     .use(loggerMiddleware())
-    .use(errorHandlerMiddleware())
+    .use(errorMiddleware())
     .use(productRoutes.routes());
 
 const listen = () => {

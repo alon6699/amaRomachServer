@@ -15,4 +15,3 @@ export const createProductQuery = async (product: Product): Promise<Product> =>
 
 export const deleteProductQuery = async (id: string): Promise<Product> =>
     ProductSchema.findOneAndDelete({ '_id': id });
-
