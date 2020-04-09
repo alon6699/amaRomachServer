@@ -16,15 +16,13 @@ export const findProduct = async (ctx: Context, next: Next) => {
 }
 
 export const updateProduct = async (ctx: Context, next: Next) => {
-    const productToUpdate: Product = ctx.request.body.product;
-    const product: Product = await updateProductQuery(ctx.params.id, productToUpdate);
+    const product: Product = await updateProductQuery(ctx.params.id, ctx.request.body.product);
     product ? ctx.ok(product) : ctx.throwNotFound(`Invalid id ${ctx.params.id}`);
     await next();
 }
 
 export const createProduct = async (ctx: Context, next: Next) => {
-    const productToCreate = ctx.request.body.product;
-    const product: Product = await createProductQuery(productToCreate);
+    const product: Product = await createProductQuery(ctx.request.body.product);
     ctx.created(product);
     await next();
 }
