@@ -1,8 +1,12 @@
 import * as Router from "koa-router";
 
-import { createProduct, deleteProduct, findProduct, getProducts, updateProduct } from "../../controllers/product.controller";
-import { validateProductMiddleware, validatePartialProductMiddleware } from "../validation/product.validation.middleware";
-import { validateDatabaseConnectionMiddleware } from "../database/database.middleware";
+import { createProduct, deleteProduct, findProduct, getProducts, updateProduct } from "../controllers/product.controller";
+import { validateProductMiddleware, validatePartialProductMiddleware } from "../middleware/validation/product.validation.middleware";
+import { validateDatabaseConnectionMiddleware } from "../middleware/database/database.middleware";
+import { productChangesMiddleware, calculateProductLimit } from "../web-socket/web-sokcet";
+import { Context, Next } from "koa";
+import { isArray } from "util";
+import { Product } from "../models/product.model";
 
 export const productRoutes: Router = new Router({
     prefix: '/products'
@@ -10,8 +14,17 @@ export const productRoutes: Router = new Router({
 
 productRoutes.use(validateDatabaseConnectionMiddleware());
 
-productRoutes.get("/", getProducts);
-productRoutes.get("/:id", findProduct);
+export const changeProductLimit = async (ctx: Context, next: Next): Promise<void> => {
+    const data: Product | Product[] = ctx.body;
+    isArray(data) ?
+        data.filter(product => product.limit).forEach(product => product.limit -= calculateProductLimit(product.id)) :
+        data.limit -= calculateProductLimit(data.id);
+    ctx.ok(data);
+    await next();
+}
+
+productRoutes.get("/", getProducts, changeProductLimit);
+productRoutes.get("/:id", findProduct, changeProductLimit);
 productRoutes.post("/", validateProductMiddleware, createProduct);
-productRoutes.put("/:id", validatePartialProductMiddleware, updateProduct);
-productRoutes.delete("/:id", deleteProduct);
+productRoutes.put("/:id", validatePartialProductMiddleware, updateProduct, productChangesMiddleware(false));
+productRoutes.delete("/:id", deleteProduct, productChangesMiddleware(true));

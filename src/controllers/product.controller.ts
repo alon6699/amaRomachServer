@@ -2,6 +2,7 @@ import { Context, Next } from 'koa';
 
 import { Product } from '../models/product.model';
 import { findProductQuery, getProductsQuery, updateProductQuery, createProductQuery, deleteProductQuery } from '../database/product.queries';
+import { cart } from '../web-socket/web-sokcet';
 
 export const getProducts = async (ctx: Context, next: Next) => {
     const products: Product[] = await getProductsQuery();
