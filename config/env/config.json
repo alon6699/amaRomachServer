@@ -1,7 +1,7 @@
 {
-    "port": 3000,
+    "port": 3001,
     "db": {
-        "url" : "mongodb://localhost:27017/shop",
+        "url" : "mongodb://localhost:27018/shop",
         "options": {
             "useNewUrlParser": true, 
             "useUnifiedTopology": true, 
@@ -12,7 +12,7 @@
     "logger": {
         "file": {
             "level": "info",
-            "filename": "C://amaRomachLogs/app.log",
+            "filename": "D://work/alon/amaRomachLogs/app.log",
             "handleExceptions": true,
             "json": true,
             "maxsize": 5242880,
