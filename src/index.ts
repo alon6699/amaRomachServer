@@ -9,10 +9,10 @@ import * as  http from 'http';
 import { connectToDB } from './database/database';
 import { logger } from './logger/logger';
 import { errorMiddleware } from './middleware/errors/errors-handler.middleware';
-import { loggerMiddleware } from './middleware/logger/logger.middleware';
+import { loggerMiddleware, socketLoggerMiddleware } from './middleware/logger/logger.middleware';
 import { respondOptions } from './middleware/models/koa-respond.model';
 import { productRoutes } from './routes/product.routes.middleware';
-import { manageProductInCart, checkout, removeSocket, registerSocket } from './socket-io/socket-io';
+import { manageProductInCart, checkout, removeSocket, registerSocket } from './socket/socket';
 
 const app: Koa = new Koa();
 
@@ -23,16 +23,18 @@ app
     .use(loggerMiddleware())
     .use(productRoutes.routes());
 
-const server = http.createServer(app.callback())
+const server = http.createServer(app.callback());
 
 export const webSocket = socket(server);
 
 webSocket.use(registerSocket);
 
 webSocket.on('connection', socket => {
+    socket.use(socketLoggerMiddleware);
     socket.on('manageProductInCart', manageProductInCart(socket));
     socket.on('checkout', checkout(socket));
     socket.on('disconnect', removeSocket(socket));
+    socket.on('error', logger.error);
 });
 
 const listen = () => {

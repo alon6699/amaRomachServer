@@ -6,7 +6,8 @@
             "useNewUrlParser": true, 
             "useUnifiedTopology": true, 
             "useFindAndModify": false,
-            "serverSelectionTimeoutMS": 30000
+            "serverSelectionTimeoutMS": 30000,
+            "replicaSet": "rs0"
         }
     },
     "logger": {
