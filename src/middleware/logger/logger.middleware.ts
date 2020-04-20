@@ -1,6 +1,6 @@
 import { Next, Context } from "koa";
 import { logger } from "../../logger/logger";
-import { Packet } from "socket.io";
+import { Packet, Socket } from "socket.io";
 
 export const loggerMiddleware = () => {
     return async (ctx: Context, next: Next) => {
@@ -11,7 +11,8 @@ export const loggerMiddleware = () => {
     };
 }
 
-export const socketLoggerMiddleware = ([event, data]: Packet, next: (err?: any) => void) => {
-    logger.info(`socket on event ${event} received packet: ${JSON.stringify(data)}`);
-    next();
-}
+export const socketLoggerMiddleware = (socket: Socket) =>
+    ([event, data]: Packet, next: (err?: any) => void) => {
+        logger.info(`socket ${socket.id} on event ${event} received packet: ${JSON.stringify(data)}`);
+        next();
+    }

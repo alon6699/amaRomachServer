@@ -28,7 +28,7 @@ export const webSocket = socket(server);
 webSocket.use(registerSocket);
 webSocket.on('error', logger.error);
 webSocket.on('connection', (socket: socket.Socket) => {
-    socket.use(socketLoggerMiddleware);
+    socket.use(socketLoggerMiddleware(socket));
     socket.on('manageProductInCart', manageProductInCart(socket));
     socket.on('checkout', checkout(socket));
     socket.on('disconnect', removeSocket(socket));
