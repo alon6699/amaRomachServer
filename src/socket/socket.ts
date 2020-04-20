@@ -50,7 +50,7 @@ export const manageProductInCart = (socket: Socket) => {
     }
 }
 
-export const checkout = (socket: Socket) => async () =>
+export const checkout = (socket: Socket) => () =>
     checkoutQuery(carts[socket.id])
         .then(() => socket.emit('checkout', { error: null }))
         .catch(error => {

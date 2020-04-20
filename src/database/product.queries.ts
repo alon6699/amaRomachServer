@@ -36,7 +36,7 @@ export const checkoutQuery = async (cart: Record<string, number>) => {
                 throw new Error(`try to buy out of stock product ${id}`);
             }
         }));
-        logger.info(`checkout done successfully ${JSON.stringify(cart)}`);
+        logger.info(`checkout Successfully completed ${JSON.stringify(cart)}`);
         await session.commitTransaction();
     }
     catch (e) {
