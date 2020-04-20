@@ -32,7 +32,7 @@ export const manageProductInCart = (socket: Socket) => {
             const product: Product = await findProductQuery(id);
             if (amount < product.limit) {
                 amount === 0 ? delete carts[socket.id][id] : carts[socket.id][id] = amount;
-                const limit = product.limit - calculateProductLimit(id);
+                const limit: number = product.limit - calculateProductLimit(id);
                 webSocket.emit('productChanges', { ...product.toObject(), limit });
             } else {
                 logger.error(`Received amount ${amount} bigger than products ${id} limit`);
