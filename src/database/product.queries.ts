@@ -22,10 +22,10 @@ export const checkoutQuery = async (cart: Record<string, number>) => {
     const session = await startSession();
     try {
         session.startTransaction();
-        await Promise.all(Object.keys(cart).map(async (id) => {
+        await Promise.all(Object.keys(cart).map(async (id: string) => {
             const product: Product = await findProductQuery(id, null, { session: session });
             if (product.limit) {
-                product.limit -= cart[id] * 2;
+                product.limit -= cart[id];
                 const validation = product.validateSync();
                 if (!validation) {
                     await product.save();
@@ -33,7 +33,7 @@ export const checkoutQuery = async (cart: Record<string, number>) => {
                     throw new Error(`can't buy product ${id} Error: ${validation.errors['limit'].message}`);
                 }
             } else if (product.limit === 0) {
-                throw new Error(`try to update limit out of stock product ${id}`);
+                throw new Error(`try to buy out of stock product ${id}`);
             }
         }));
         logger.info(`checkout done successfully ${JSON.stringify(cart)}`);

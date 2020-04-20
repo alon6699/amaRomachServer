@@ -10,7 +10,7 @@ const carts: Record<string, Record<string, number>> = {};
 export const registerSocket = (socket: Socket, next: (err?: Error) => void) => {
     logger.info(`A user connected ${socket.id}`);
     carts[socket.id] = {};
-    return next();
+    next();
 }
 
 const clearCart = (socket: Socket) =>
@@ -22,19 +22,24 @@ export const removeSocket = (socket: Socket) => () => {
     delete carts[socket.id];
 }
 
-export const calculateProductLimit = (id: string) =>
+export const calculateProductLimit = (id: string): number =>
     Object.values(carts).reduce((acc, productInCart) =>
         productInCart[id] ? acc + productInCart[id] : acc, 0);
 
 export const manageProductInCart = (socket: Socket) => {
     return async ({ id, amount }: { id: string, amount: number }) => {
-        const product: Product = await findProductQuery(id);
-        if (amount < 0 || amount > product.limit) {
-            throw new Error('invalid amount');
+        if (amount >= 0) {
+            const product: Product = await findProductQuery(id);
+            if (amount >= 0 && amount < product.limit) {
+                amount === 0 ? delete carts[socket.id][id] : carts[socket.id][id] = amount;
+                const limit = product.limit - calculateProductLimit(id);
+                webSocket.emit('productChanges', { ...product.toObject(), limit });
+            } else {
+                logger.error(`Received amount ${amount} bigger than products ${id} limit`);
+            }
+        } else {
+            logger.error(`Received negative amount ${amount} to set product ${id} cart amount`);
         }
-        amount === 0 ? delete carts[socket.id][id] : carts[socket.id][id] = amount;
-        const limit = product.limit - calculateProductLimit(id);
-        webSocket.emit('productChanges', { ...product.toObject(), limit });
     }
 }
 

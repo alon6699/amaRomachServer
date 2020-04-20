@@ -13,5 +13,5 @@ export const loggerMiddleware = () => {
 
 export const socketLoggerMiddleware = ([event, data]: Packet, next: (err?: any) => void) => {
     logger.info(`socket on event ${event} received packet: ${JSON.stringify(data)}`);
-    return next();
+    next();
 }

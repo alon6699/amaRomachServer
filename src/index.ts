@@ -15,7 +15,6 @@ import { productRoutes } from './routes/product.routes.middleware';
 import { manageProductInCart, checkout, removeSocket, registerSocket } from './socket/socket';
 
 const app: Koa = new Koa();
-
 app
     .use(errorMiddleware())
     .use(respond(respondOptions))
@@ -26,10 +25,9 @@ app
 const server = http.createServer(app.callback());
 
 export const webSocket = socket(server);
-
 webSocket.use(registerSocket);
-
-webSocket.on('connection', socket => {
+webSocket.on('error', logger.error);
+webSocket.on('connection', (socket: socket.Socket) => {
     socket.use(socketLoggerMiddleware);
     socket.on('manageProductInCart', manageProductInCart(socket));
     socket.on('checkout', checkout(socket));
