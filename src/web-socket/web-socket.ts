@@ -4,33 +4,30 @@ import { webSocket } from "..";
 import { Product } from "../models/product.model";
 import { findProductQuery, checkoutQuery } from "../database/product.queries";
 import { logger } from "../logger/logger";
-
-const carts: Record<string, Record<string, number>> = {};
+import { addCart, removeCart, calculateProductLimit, removeCartProduct, updateCartProduct, resetCart, getCart } from "../cart/cart";
 
 export const registerSocket = (socket: Socket, next: (err?: Error) => void) => {
     logger.info(`A user connected ${socket.id}`);
-    carts[socket.id] = {};
+    addCart(socket.id);
     next();
 }
 
 const clearCart = async (socket: Socket) =>
-    await Promise.all(Object.keys(carts[socket.id])
-        .map((id) => manageProductInCart(socket)({ id, amount: 0 })))
+    await Promise.all(Object.keys(getCart(socket.id))
+        .map(id => manageProductInCart(socket)({ id, amount: 0 })))
 
 export const removeSocket = (socket: Socket) => async () => {
     logger.info(`A user disconnected ${socket.id}`);
     await clearCart(socket);
-    delete carts[socket.id];
+    removeCart(socket.id);
 }
 
-export const calculateProductLimit = (id: string): number =>
-    Object.values(carts).reduce((acc, productInCart) =>
-        productInCart[id] ? acc + productInCart[id] : acc, 0);
-
 const updateProductCartAmount = (socketId: string, product: Product, amount: number) => {
-    amount === 0 ? delete carts[socketId][product._id] : carts[socketId][product._id] = amount;
+    amount === 0 ?
+        removeCartProduct(socketId, product._id) :
+        updateCartProduct(socketId, product._id, amount);
     if (product.limit !== undefined) {
-        const limit: number = product.limit - calculateProductLimit(product._id);
+        const limit: number = calculateProductLimit(product._id, product.limit);
         webSocket.emit('productChanges', { ...product.toObject(), limit });
     }
 }
@@ -51,10 +48,10 @@ export const manageProductInCart = (socket: Socket) => {
 }
 
 export const checkout = (socket: Socket) => () =>
-    checkoutQuery(carts[socket.id])
-        .then(() => socket.emit('checkout', { error: null }))
+    checkoutQuery(getCart(socket.id))
+        .then(() => socket.emit('checkout', { purchased: true }))
         .catch(error => {
             clearCart(socket);
-            socket.emit('checkout', { error: error.message })
+            socket.emit('checkout', { purchased: false, error: error.message })
         })
-        .finally(() => carts[socket.id] = {})
+        .finally(() => resetCart(socket.id))

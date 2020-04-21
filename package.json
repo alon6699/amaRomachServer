@@ -9,6 +9,7 @@
     "koa-bodyparser": "^4.3.0",
     "koa-respond": "^2.1.0",
     "koa-router": "^8.0.8",
+    "koa-session": "^5.13.1",
     "mongoose": "^5.9.7",
     "nconf": "^0.10.0",
     "socket.io": "^2.3.0",

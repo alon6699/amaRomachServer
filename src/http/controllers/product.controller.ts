@@ -1,13 +1,13 @@
 import { Context, Next } from 'koa';
 
-import { Product } from '../models/product.model';
+import { Product } from '../../models/product.model';
 import {
     findProductQuery,
     getProductsQuery,
     updateProductQuery,
     createProductQuery,
     deleteProductQuery
-} from '../database/product.queries';
+} from '../../database/product.queries';
 
 export const getProducts = async (ctx: Context, next: Next) => {
     const products: Product[] = await getProductsQuery();

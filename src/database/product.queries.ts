@@ -1,4 +1,4 @@
-import { startSession, DocumentQuery } from 'mongoose';
+import { startSession, DocumentQuery, ClientSession } from 'mongoose';
 import { ProductSchema } from "../schemas/product.schema";
 import { Product } from '../models/product.model';
 import { logger } from '../logger/logger';
@@ -19,24 +19,13 @@ export const deleteProductQuery = async (id: string): DocumentQuery<Product, Pro
     ProductSchema.findOneAndDelete({ '_id': id });
 
 export const checkoutQuery = async (cart: Record<string, number>) => {
-    const session = await startSession();
+    const session: ClientSession = await startSession();
     try {
         session.startTransaction();
-        await Promise.all(Object.keys(cart).map(async (id: string) => {
-            const product: Product = await findProductQuery(id, null, { session: session });
-            if (product.limit) {
-                product.limit -= cart[id];
-                const validation = product.validateSync();
-                if (!validation) {
-                    await product.save();
-                } else {
-                    throw new Error(`can't buy product ${id} Error: ${validation.errors['limit'].message}`);
-                }
-            } else if (product.limit === 0) {
-                throw new Error(`try to buy out of stock product ${id}`);
-            }
-        }));
-        logger.info(`checkout Successfully completed ${JSON.stringify(cart)}`);
+        await Promise.all(Object.keys(cart).map(async (id: string) =>
+            await buyProduct(id, cart[id], session)
+        ));
+        logger.info(`purchase Successfully completed ${JSON.stringify(cart)}`);
         await session.commitTransaction();
     }
     catch (e) {
@@ -46,5 +35,21 @@ export const checkoutQuery = async (cart: Record<string, number>) => {
     }
     finally {
         session.endSession();
+    }
+}
+
+const buyProduct = async (id: string, amount: number, session: ClientSession): Promise<Product> => {
+    const product: Product = await findProductQuery(id, null, { session: session });
+    if (product.limit) {
+        const productLimit = product.limit;
+        product.limit -= amount;
+        return product.save().catch(error => {
+            if (error.errors['limit']) {
+                throw new Error(`product ${product.id} amount ${amount} is bigger than product's stock ${productLimit}`);
+            }
+            throw error;
+        });
+    } else if (product.limit === 0) {
+        throw new Error(`try to buy out of stock product ${id}`);
     }
 }
