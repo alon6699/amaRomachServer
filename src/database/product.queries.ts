@@ -25,12 +25,10 @@ export const checkoutQuery = async (cart: Record<string, number>) => {
         await Promise.all(Object.keys(cart).map(async (id: string) =>
             await buyProduct(id, cart[id], session)
         ));
-        logger.info(`purchase Successfully completed ${JSON.stringify(cart)}`);
         await session.commitTransaction();
     }
     catch (e) {
         await session.abortTransaction();
-        logger.error(e.message);
         throw e;
     }
     finally {
