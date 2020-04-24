@@ -12,8 +12,8 @@ export const updateCartProduct = (cartId: string, productId: string, amount: num
     carts[cartId][productId] = amount;
 }
 
-export const removeCart = (cartId: string) => {
-    delete carts[cartId];
+export const removeCart = (id: string) => {
+    delete carts[id];
 }
 
 export const resetCart = (cartId: string) => {

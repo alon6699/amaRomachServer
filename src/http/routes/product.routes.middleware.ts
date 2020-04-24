@@ -1,8 +1,8 @@
 import * as Router from "koa-router";
 
 import { createProduct, deleteProduct, findProduct, getProducts, updateProduct, checkout } from "../controllers/product.controller";
-import { validateProductMiddleware, validatePartialProductMiddleware } from "../../middleware/validation/product.validation.middleware";
-import { validateDatabaseConnectionMiddleware } from "../../middleware/database/database.middleware";
+import { validateProductMiddleware, validatePartialProductMiddleware } from "../middleware/validation/product.validation.middleware";
+import { validateDatabaseConnectionMiddleware } from "../middleware/database/database.middleware";
 import { updateProductLimitMiddleware, productChangesMiddleware } from "./product.middleware";
 
 export const productRoutes: Router = new Router({});

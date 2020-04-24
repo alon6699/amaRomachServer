@@ -10,12 +10,13 @@ import * as session from 'koa-session';
 
 import { connectToDB } from './database/database';
 import { logger } from './logger/logger';
-import { errorMiddleware } from './middleware/errors/errors-handler.middleware';
-import { loggerMiddleware, socketLoggerMiddleware } from './middleware/logger/logger.middleware';
-import { respondOptions } from './middleware/models/koa-respond.model';
+import { errorMiddleware } from './http/middleware/errors/errors-handler.middleware';
+import { loggerMiddleware } from './http/middleware/logger/logger.middleware';
+import { respondOptions } from './http/middleware/models/koa-respond.model';
 import { productRoutes } from './http/routes/product.routes.middleware';
-import { updateProductInCart, removeSocket, registerSocket } from './web-socket/web-socket';
-import { activateSessionMiddleware } from './middleware/session/session.middleware';
+import { updateProductInCart, removeSocket } from './web-socket/web-socket';
+import { activateSessionMiddleware } from './http/middleware/session/session.middleware';
+import { socketLoggerMiddleware, registerSocket } from './web-socket/middleware/web-socket.middleware';
 
 const app: Koa = new Koa();
 app.keys = ['secret'];
@@ -36,7 +37,7 @@ webSocket.use(registerSocket);
 webSocket.on('error', logger.error);
 webSocket.on('connection', (socket: socket.Socket) => {
     socket.use(socketLoggerMiddleware(socket));
-    socket.on('manageProductInCart', updateProductInCart(socket.id));
+    socket.on('updateProductInCart', updateProductInCart(socket.id));
     socket.on('disconnect', removeSocket(socket.id));
     socket.on('error', logger.error);
 });

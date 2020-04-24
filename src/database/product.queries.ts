@@ -1,7 +1,7 @@
 import { startSession, DocumentQuery, ClientSession } from 'mongoose';
 import { ProductSchema } from "./schemas/product.schema";
 import { Product } from '../models/product.model';
-import { logger } from '../logger/logger';
+import { Cart } from '../cart/types/cart.type';
 
 export const getProductsQuery = async (): Promise<Product[]> =>
     ProductSchema.find();
@@ -18,7 +18,7 @@ export const createProductQuery = async (product: Product): DocumentQuery<Produc
 export const deleteProductQuery = async (id: string): DocumentQuery<Product, Product> =>
     ProductSchema.findOneAndDelete({ '_id': id });
 
-export const checkoutQuery = async (cart: Record<string, number>) => {
+export const checkoutQuery = async (cart: Cart) => {
     const session: ClientSession = await startSession();
     try {
         session.startTransaction();

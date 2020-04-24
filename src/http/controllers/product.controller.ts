@@ -44,19 +44,19 @@ export const deleteProduct = async (ctx: Context, next: Next) => {
 }
 
 export const checkout = async (ctx: Context, next: Next) => {
-    const socketId: string = ctx.cookies.get('userId.sig');
+    const clientId: string = ctx.cookies.get('userId.sig');
     try {
-        const cart: Cart = getCart(socketId);
+        const cart: Cart = getCart(clientId);
         if (!cart) {
             ctx.throwInternalServerError('purchase failed');
         }
         await checkoutQuery(cart);
-        ctx.ok('purchase successfully completed');
+        ctx.ok(cart);
         await next();
     } catch (error) {
-        clearCart(socketId);
+        clearCart(clientId);
         ctx.throwInternalServerError(error.message);
     } finally {
-        resetCart(socketId);
+        resetCart(clientId);
     }
 }

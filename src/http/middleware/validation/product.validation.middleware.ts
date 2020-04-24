@@ -1,7 +1,7 @@
 import { Context, Next } from "koa";
 import * as Joi from 'Joi';
 
-import { Product } from "../../models/product.model";
+import { Product } from "../../../models/product.model";
 
 const productValidationSchema: Joi.ObjectSchema = Joi.object({
     name: Joi.string()
