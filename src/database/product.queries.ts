@@ -1,5 +1,5 @@
 import { startSession, DocumentQuery, ClientSession } from 'mongoose';
-import { ProductSchema } from "../schemas/product.schema";
+import { ProductSchema } from "./schemas/product.schema";
 import { Product } from '../models/product.model';
 import { logger } from '../logger/logger';
 
