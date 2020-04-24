@@ -12,8 +12,6 @@ import {
 import { getCart, resetCart } from '../../cart/cart';
 import { clearCart } from '../../web-socket/web-socket';
 import { Cart } from '../../cart/types/cart.type';
-import { store } from '../../store/store';
-import { logger } from '../../logger/logger';
 
 export const getProducts = async (ctx: Context, next: Next) => {
     const products: Product[] = await getProductsQuery();
@@ -46,7 +44,7 @@ export const deleteProduct = async (ctx: Context, next: Next) => {
 }
 
 export const checkout = async (ctx: Context, next: Next) => {
-    const socketId: string = store.get(ctx.cookies.get('id'));
+    const socketId: string = ctx.cookies.get('userId.sig');
     try {
         const cart: Cart = getCart(socketId);
         if (!cart) {

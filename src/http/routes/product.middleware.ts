@@ -10,11 +10,6 @@ const updateProductLimit = (product: Product): Product =>
         ({ ...product.toObject(), limit: calculateProductLimit(product.id, product.limit) }) :
         product;
 
-export const setUserId = async (ctx: Context, next: Next) => {
-    ctx.cookies.set('id', new Date().getTime().toString());
-    await next();
-}
-
 export const updateProductLimitMiddleware = async (ctx: Context, next: Next): Promise<void> => {
     const data: Product | Product[] = ctx.body;
     ctx.ok(isArray(data) ? data.map(updateProductLimit) : updateProductLimit(data));

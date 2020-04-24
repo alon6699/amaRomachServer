@@ -6,6 +6,7 @@ import * as nconf from 'nconf';
 import * as socket from 'socket.io';
 import * as http from 'http';
 import * as cors from '@koa/cors';
+import * as session from 'koa-session';
 
 import { connectToDB } from './database/database';
 import { logger } from './logger/logger';
@@ -14,11 +15,15 @@ import { loggerMiddleware, socketLoggerMiddleware } from './middleware/logger/lo
 import { respondOptions } from './middleware/models/koa-respond.model';
 import { productRoutes } from './http/routes/product.routes.middleware';
 import { manageProductInCart as updateProductInCart, removeSocket, registerSocket } from './web-socket/web-socket';
+import { sessionMiddleware } from './middleware/session/session.middleware';
 
 const app: Koa = new Koa();
+app.keys = ['secret'];
 app
     .use(errorMiddleware())
     .use(cors({ credentials: true }))
+    .use(session({ key: 'userId' }, app))
+    .use(sessionMiddleware)
     .use(respond(respondOptions))
     .use(bodyParser())
     .use(loggerMiddleware())
@@ -32,7 +37,7 @@ webSocket.on('error', logger.error);
 webSocket.on('connection', (socket: socket.Socket) => {
     socket.use(socketLoggerMiddleware(socket));
     socket.on('manageProductInCart', updateProductInCart(socket.id));
-    socket.on('disconnect', removeSocket(socket));
+    socket.on('disconnect', removeSocket(socket.id));
     socket.on('error', logger.error);
 });
 
