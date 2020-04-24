@@ -15,7 +15,7 @@ import { loggerMiddleware, socketLoggerMiddleware } from './middleware/logger/lo
 import { respondOptions } from './middleware/models/koa-respond.model';
 import { productRoutes } from './http/routes/product.routes.middleware';
 import { manageProductInCart as updateProductInCart, removeSocket, registerSocket } from './web-socket/web-socket';
-import { sessionMiddleware } from './middleware/session/session.middleware';
+import { activateSessionMiddleware } from './middleware/session/session.middleware';
 
 const app: Koa = new Koa();
 app.keys = ['secret'];
@@ -23,7 +23,7 @@ app
     .use(errorMiddleware())
     .use(cors({ credentials: true }))
     .use(session({ key: 'userId' }, app))
-    .use(sessionMiddleware)
+    .use(activateSessionMiddleware)
     .use(respond(respondOptions))
     .use(bodyParser())
     .use(loggerMiddleware())
