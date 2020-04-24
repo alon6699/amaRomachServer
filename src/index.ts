@@ -14,7 +14,7 @@ import { errorMiddleware } from './middleware/errors/errors-handler.middleware';
 import { loggerMiddleware, socketLoggerMiddleware } from './middleware/logger/logger.middleware';
 import { respondOptions } from './middleware/models/koa-respond.model';
 import { productRoutes } from './http/routes/product.routes.middleware';
-import { manageProductInCart as updateProductInCart, removeSocket, registerSocket } from './web-socket/web-socket';
+import { updateProductInCart, removeSocket, registerSocket } from './web-socket/web-socket';
 import { activateSessionMiddleware } from './middleware/session/session.middleware';
 
 const app: Koa = new Koa();

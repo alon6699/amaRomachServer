@@ -16,7 +16,7 @@ export const registerSocket = (socket: Socket, next: (err?: Error) => void) => {
 
 export const clearCart = async (socketId: string) =>
     await Promise.all(Object.keys(getCart(socketId))
-        .map(id => manageProductInCart(socketId)({ id, amount: 0 })))
+        .map(id => updateProductInCart(socketId)({ id, amount: 0 })))
 
 export const removeSocket = (socketId: string) => async () => {
     logger.info(`A user disconnected ${socketId}`);
@@ -34,7 +34,7 @@ const updateProductCartAmount = (socketId: string, product: Product, amount: num
     }
 }
 
-export const manageProductInCart = (socketId: string) => {
+export const updateProductInCart = (socketId: string) => {
     return async ({ id, amount }: { id: string, amount: number }) => {
         if (amount >= 0) {
             const product: Product = await findProductQuery(id);
