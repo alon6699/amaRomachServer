@@ -5,9 +5,10 @@ import { Packet, Socket } from "socket.io";
 export const loggerMiddleware = () => {
     return async (ctx: Context, next: Next) => {
         const userId: string = ctx.cookies.get('userId.sig');
-        logger.info(`received request from ${userId ? 'user ' + userId : ''} url ${ctx.url}`);
+        let user: string = userId ? 'user ' + userId : '';
+        logger.info(`received request from ${user} url ${ctx.url}`);
         await next();
-        const message = `response status ${ctx.status}, body: ${(JSON.stringify(ctx.body))}`;
+        const message = `response${user ? ' to ' + user : ''} status ${ctx.status}, body: ${(JSON.stringify(ctx.body))}`;
         ctx.status >= 400 ? logger.error(message) : logger.info(message);
     };
 }
