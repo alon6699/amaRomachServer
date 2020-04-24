@@ -6,4 +6,5 @@ export interface Product extends Document {
     image: string;
     price: number;
     limit?: number;
+    deleted?: true;
 }

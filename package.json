@@ -4,13 +4,16 @@
   "description": "node server",
   "main": "index.js",
   "dependencies": {
+    "@koa/cors": "^2.2.3",
     "joi": "^14.3.1",
     "koa": "^2.11.0",
     "koa-bodyparser": "^4.3.0",
     "koa-respond": "^2.1.0",
     "koa-router": "^8.0.8",
+    "koa-session": "^5.13.1",
     "mongoose": "^5.9.7",
     "nconf": "^0.10.0",
+    "socket.io": "^2.3.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {
@@ -20,6 +23,7 @@
     "@types/koa-router": "^7.4.0",
     "@types/mongoose": "^5.7.8",
     "@types/node": "^13.9.5",
+    "@types/socket.io": "^2.1.4",
     "@types/winston": "^2.4.4",
     "install": "^0.13.0",
     "nodemon": "^2.0.2",
