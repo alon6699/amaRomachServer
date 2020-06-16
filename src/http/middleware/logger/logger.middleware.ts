@@ -1,6 +1,5 @@
 import { Next, Context } from "koa";
 import { logger } from "../../../logger/logger";
-import { Packet, Socket } from "socket.io";
 
 export const loggerMiddleware = () => {
     return async (ctx: Context, next: Next) => {

@@ -19,6 +19,9 @@ export const deleteProductQuery = async (id: string): DocumentQuery<Product, Pro
     ProductSchema.findOneAndDelete({ '_id': id });
 
 export const checkoutQuery = async (cart: Cart) => {
+    if(!cart) {
+        throw new Error('Checkout Failed. Got undefined cart');
+    }
     const session: ClientSession = await startSession();
     try {
         session.startTransaction();
