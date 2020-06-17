@@ -7,7 +7,7 @@ import * as socket from 'socket.io';
 import * as http from 'http';
 import * as cors from '@koa/cors';
 import * as session from 'koa-session';
-import { ApolloServer, PubSub, gql } from "apollo-server-koa";
+import { ApolloServer} from "apollo-server-koa";
 
 import { connectToDB } from './database/database';
 import { logger } from './logger/logger';
@@ -18,74 +18,9 @@ import { productRoutes } from './http/routes/product.routes.middleware';
 import { updateProductInCartSocket, removeSocket } from './web-socket/web-socket';
 import { activateSessionMiddleware } from './http/middleware/session/session.middleware';
 import { socketLoggerMiddleware, registerSocket } from './web-socket/middleware/web-socket.middleware';
-import { getProductsQuery, findProductQuery, createProductQuery, updateProductQuery, deleteProductQuery, checkoutQuery } from './database/product.queries';
-import { getCart, addCart, updateProductInCart } from './cart/cart';
+import { apolloServerConfig } from './graphql';
 
 const app: Koa = new Koa();
-
-export const pubSub = new PubSub();
-
-const typeDefs = gql`
-  type Query {
-    getProducts: [Product]
-    getProduct(id: String!): Product
-  }
-  
-  type Mutation {
-    createProduct(product: ProductInput!): Product
-    updateProduct(id: String!, product: productUpdateInput!): Product
-    deleteProduct(id: String!): Product
-    updateProductInCart(id: String!, amount: Int!): Product
-    checkout: Boolean
-  }
-
-  type Product {
-    id: String!
-    name: String!
-    description: String
-    price: Int
-    image: String
-    limit: Int
-  }
-
-  input productUpdateInput {
-    name: String
-    description: String
-    price: Int
-    image: String
-    limit: Int
-  }
-
-  input ProductInput {
-    name: String!
-    description: String!
-    price: Int!
-    image: String!
-    limit: Int!
-  }
-`;
-
-const resolvers = {
-    Query: {
-        getProducts: () => getProductsQuery(),
-        getProduct: (_, { id }) => findProductQuery(id)
-    },
-    Mutation: {
-        createProduct: (_, { product }) => createProductQuery(product),
-        updateProduct: (_, { id, product }) => updateProductQuery(id, product),
-        deleteProduct: (_, { id }) => deleteProductQuery(id),
-        updateProductInCart: async (_, { id, amount }, { userId }) => updateProductInCart(userId, id, amount),
-        checkout: async (_, { }, { userId }) => {
-            try {
-                await checkoutQuery(getCart(userId));
-            } catch (e) {
-                logger.error(e.message);
-                return false;
-            }
-            return true;
-        }
-    }
-};
 
 app.keys = ['secret'];
 app
@@ -98,17 +33,7 @@ app
     .use(loggerMiddleware())
     .use(productRoutes.routes());
 
-
-const apolloServer = new ApolloServer({
-    typeDefs,
-    resolvers,
-    context: ({ ctx }) => {
-        const userId: string = ctx.cookies.get('userId.sig');
-        logger.info(`Add new cart to user ${userId}`);
-        addCart(userId);
-        return { userId: ctx.cookies.get('userId.sig') }
-    }
-});
+const apolloServer = new ApolloServer(apolloServerConfig);
 apolloServer.applyMiddleware({ app, cors: { credentials: true } });
 
 const server = http.createServer(app.callback());
