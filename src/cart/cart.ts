@@ -1,11 +1,13 @@
 import { Cart } from "./types/cart.type";
 import { Product } from "../models/product.model";
 import { findProductQuery } from "../database/product.queries";
+import { logger } from "../logger/logger";
 
 const carts: Record<string, Cart> = {};
 
-export const addCart = (id: string) => {
-    if (!carts[id]) {
+export const registerNewCart = (id: string) => {
+    if (!getCart(id)) {
+        logger.info(`Add new cart to user ${id}`);
         carts[id] = {};
     }
 }
@@ -36,7 +38,7 @@ export const calculateProductLimit = (productId: string, currentLimit: number): 
 export const updateProductInCart = async (userId: string, productId: string, amount: number): Promise<Product> => {
     if (amount >= 0) {
         const product: Product = await findProductQuery(productId);
-        if(!product) {
+        if (!product) {
             throw new Error(`Could not find product with id ${productId}`);
         }
         if (product.limit !== undefined && amount > product.limit) {

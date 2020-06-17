@@ -7,7 +7,7 @@ import * as socket from 'socket.io';
 import * as http from 'http';
 import * as cors from '@koa/cors';
 import * as session from 'koa-session';
-import { ApolloServer} from "apollo-server-koa";
+import { ApolloServer, PubSub } from "apollo-server-koa";
 
 import { connectToDB } from './database/database';
 import { logger } from './logger/logger';
@@ -33,9 +33,6 @@ app
     .use(loggerMiddleware())
     .use(productRoutes.routes());
 
-const apolloServer = new ApolloServer(apolloServerConfig);
-apolloServer.applyMiddleware({ app, cors: { credentials: true } });
-
 const server = http.createServer(app.callback());
 
 export const webSocket = socket(server);
@@ -48,12 +45,18 @@ webSocket.on('connection', (socket: socket.Socket) => {
     socket.on('error', logger.error);
 });
 
-const listen = () => {
+export const pubSub = new PubSub();
+const apolloServer = new ApolloServer(apolloServerConfig);
+apolloServer.applyMiddleware({ app, cors: { credentials: true } });
+// TODO: fix it. webSocket stop working :|
+apolloServer.installSubscriptionHandlers(server);
+
+
+(() => {
     const port: number = nconf.get('port');
     server.listen(port, () => {
         logger.info('Server is up and listen on port ' + port);
+        console.log(`Subscriptions ready at ws://localhost:${port}${apolloServer.subscriptionsPath}`)
         connectToDB();
     });
-}
-
-listen();
+})();

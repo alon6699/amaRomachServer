@@ -1,24 +1,25 @@
-import { PubSub, gql } from "apollo-server";
-import { addCart } from "../cart/cart";
-import { logger } from "../logger/logger";
+import { gql, Config } from "apollo-server";
+import { DocumentNode } from "graphql";
+import { registerNewCart } from "../cart/cart";
 import { productsResolvers } from "./product/product.resolver";
 import { productsSchema } from "./product/product.schema";
 import { ProductTypeDef } from "./product/product.types.schema";
-import { DocumentNode } from "graphql";
 
-export const pubSub = new PubSub();
-
-const baseTypeDefs: DocumentNode = gql`
+const baseSchema: DocumentNode = gql`
   type Query
+  type Mutation
+  type Subscription
 `
 
-export const apolloServerConfig = {
-    typeDefs: [baseTypeDefs, productsSchema, ProductTypeDef],
+export const apolloServerConfig: Config = {
+    typeDefs: [baseSchema, productsSchema, ProductTypeDef],
     resolvers: productsResolvers,
-    context: ({ ctx }) => {
-        const userId: string = ctx.cookies.get('userId.sig');
-        logger.info(`Add new cart to user ${userId}`);
-        addCart(userId);
-        return { userId: ctx.cookies.get('userId.sig') }
+    context: (context) => {
+        if (context.ctx) {
+            const userId: string = context.ctx.cookies.get('userId.sig');
+            registerNewCart(userId);
+            return { userId }
+        }
     }
 }
+

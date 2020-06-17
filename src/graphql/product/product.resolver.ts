@@ -1,6 +1,24 @@
-import { getCart, updateProductInCart } from "../../cart/cart";
+import { getCart, updateProductInCart, calculateProductLimit, resetCart } from "../../cart/cart";
 import { checkoutQuery, createProductQuery, deleteProductQuery, findProductQuery, getProductsQuery, updateProductQuery } from "../../database/product.queries";
-import { logger } from "../../logger/logger";
+import { pubSub } from "../..";
+import { Product } from "../../models/product.model";
+
+export const PRODUCT_UPDATES: string = 'productsUpdates123';
+
+const productUpdatesSideEffect = (product: Product, deleted: boolean = false) => {
+    pubSub.publish(PRODUCT_UPDATES, { productUpdates: { ...product.toObject(), deleted } });
+    return product;
+};
+
+const updateProductInCartHelper = (product: Product) =>
+    product.limit !== undefined ? productUpdatesSideEffect(product) : product;
+
+const checkoutHandler = (userId: string) =>
+    checkoutQuery(getCart(userId))
+        .then(() => {
+            resetCart(userId);
+            return true;
+        })
 
 export const productsResolvers = {
     Query: {
@@ -8,18 +26,20 @@ export const productsResolvers = {
         getProduct: (_, { id }) => findProductQuery(id)
     },
     Mutation: {
-        createProduct: (_, { product }) => createProductQuery(product),
-        updateProduct: (_, { id, product }) => updateProductQuery(id, product),
-        deleteProduct: (_, { id }) => deleteProductQuery(id),
-        updateProductInCart: async (_, { id, amount }, { userId }) => updateProductInCart(userId, id, amount),
-        checkout: async (_, { }, { userId }) => {
-            try {
-                await checkoutQuery(getCart(userId));
-            } catch (e) {
-                logger.error(e.message);
-                return false;
-            }
-            return true;
-        }
+        createProduct: (_, { product }) => createProductQuery(product).then(productUpdatesSideEffect),
+        updateProduct: (_, { id, product }) => updateProductQuery(id, product).then(productUpdatesSideEffect),
+        deleteProduct: (_, { id }) => deleteProductQuery(id).then(product => productUpdatesSideEffect(product, true)),
+        updateProductInCart: async (_, { id, amount }, { userId }) =>
+            updateProductInCart(userId, id, amount).then(updateProductInCartHelper),
+        checkout: async (_, { }, { userId }) => checkoutHandler(userId)
+    },
+    Subscription: {
+        productUpdates: {
+            subscribe: () => pubSub.asyncIterator([PRODUCT_UPDATES]),
+        },
+    },
+    Product: {
+        limit: (product: Product) => calculateProductLimit(product._id, product.limit),
+        deleted: (product: Product) => !!product.deleted
     }
 };

@@ -9,6 +9,7 @@ export const ProductTypeDef: DocumentNode = gql`
         price: Int
         image: String
         limit: Int
+        deleted: Boolean
     }
 
     input productUpdateInput {
