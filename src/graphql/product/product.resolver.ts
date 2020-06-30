@@ -3,10 +3,11 @@ import { checkoutQuery, createProductQuery, deleteProductQuery, findProductQuery
 import { pubSub } from "../..";
 import { Product } from "../../models/product.model";
 
-export const PRODUCT_UPDATES: string = 'productsUpdates123';
+export const PRODUCT_UPDATES: string = 'productsUpdates';
 
 const productUpdatesSideEffect = (product: Product, deleted: boolean = false) => {
-    pubSub.publish(PRODUCT_UPDATES, { productUpdates: { ...product.toObject(), deleted } });
+    product.deleted = deleted;
+    pubSub.publish(PRODUCT_UPDATES, { productUpdates: product });
     return product;
 };
 

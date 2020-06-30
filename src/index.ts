@@ -47,8 +47,7 @@ webSocket.on('connection', (socket: socket.Socket) => {
 
 export const pubSub = new PubSub();
 const apolloServer = new ApolloServer(apolloServerConfig);
-apolloServer.applyMiddleware({ app, cors: { credentials: true } });
-// TODO: fix it. webSocket stop working :|
+apolloServer.applyMiddleware({ app, cors: { credentials: true }});
 apolloServer.installSubscriptionHandlers(server);
 
 
@@ -56,7 +55,7 @@ apolloServer.installSubscriptionHandlers(server);
     const port: number = nconf.get('port');
     server.listen(port, () => {
         logger.info('Server is up and listen on port ' + port);
-        console.log(`Subscriptions ready at ws://localhost:${port}${apolloServer.subscriptionsPath}`)
+        logger.info(`Subscriptions ready at ws://localhost:${port}${apolloServer.subscriptionsPath}`)
         connectToDB();
     });
 })();

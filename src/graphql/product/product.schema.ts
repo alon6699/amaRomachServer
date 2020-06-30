@@ -4,14 +4,14 @@ import { DocumentNode } from "graphql";
 export const productsSchema: DocumentNode = gql`
   extend type Query {
     getProducts: [Product]
-    getProduct(id: String!): Product
+    getProduct(id: ID!): Product
   }
   
   extend type Mutation {
     createProduct(product: ProductInput!): Product
-    updateProduct(id: String!, product: productUpdateInput!): Product
-    deleteProduct(id: String!): Product
-    updateProductInCart(id: String!, amount: Int!): Product
+    updateProduct(id: ID!, product: productUpdateInput!): Product
+    deleteProduct(id: ID!): Product
+    updateProductInCart(id: ID!, amount: Int!): Product
     checkout: Boolean
   }
 

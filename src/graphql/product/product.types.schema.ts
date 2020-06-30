@@ -3,7 +3,7 @@ import { DocumentNode } from 'graphql';
 
 export const ProductTypeDef: DocumentNode = gql`
     type Product {
-        id: String!
+        id: ID!
         name: String!
         description: String
         price: Int
