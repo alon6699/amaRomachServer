@@ -5,11 +5,11 @@ export const ProductTypeDef: DocumentNode = gql`
     type Product {
         id: ID!
         name: String!
-        description: String
-        price: Int
-        image: String
+        description: String!
+        price: Int!
+        image: String!
         limit: Int
-        deleted: Boolean
+        deleted: Boolean!
     }
 
     input productUpdateInput {

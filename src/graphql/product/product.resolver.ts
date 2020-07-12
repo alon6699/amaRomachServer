@@ -5,16 +5,16 @@ import { Product } from "../../models/product.model";
 
 export const PRODUCT_UPDATES: string = 'productsUpdates';
 
-const productUpdatesSideEffect = (product: Product, deleted: boolean = false) => {
+const productUpdatesSideEffect = (product: Product, deleted: boolean = false): Product => {
     product.deleted = deleted;
     pubSub.publish(PRODUCT_UPDATES, { productUpdates: product });
     return product;
 };
 
-const updateProductInCartHelper = (product: Product) =>
+const updateProductInCartHelper = (product: Product): Product =>
     product.limit !== undefined ? productUpdatesSideEffect(product) : product;
 
-const checkoutHandler = (userId: string) =>
+const checkoutHandler = (userId: string): Promise<boolean> =>
     checkoutQuery(getCart(userId))
         .then(() => {
             resetCart(userId);
@@ -23,16 +23,16 @@ const checkoutHandler = (userId: string) =>
 
 export const productsResolvers = {
     Query: {
-        getProducts: () => getProductsQuery(),
+        getProducts: getProductsQuery,
         getProduct: (_, { id }) => findProductQuery(id)
     },
     Mutation: {
         createProduct: (_, { product }) => createProductQuery(product).then(productUpdatesSideEffect),
         updateProduct: (_, { id, product }) => updateProductQuery(id, product).then(productUpdatesSideEffect),
         deleteProduct: (_, { id }) => deleteProductQuery(id).then(product => productUpdatesSideEffect(product, true)),
-        updateProductInCart: async (_, { id, amount }, { userId }) =>
+        updateProductInCart: (_, { id, amount }, { userId }) =>
             updateProductInCart(userId, id, amount).then(updateProductInCartHelper),
-        checkout: async (_, { }, { userId }) => checkoutHandler(userId)
+        checkout: (_, { }, { userId }) => checkoutHandler(userId)
     },
     Subscription: {
         productUpdates: {
