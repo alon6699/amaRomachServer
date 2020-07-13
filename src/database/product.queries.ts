@@ -2,6 +2,7 @@ import { startSession, DocumentQuery, ClientSession } from 'mongoose';
 import { ProductSchema } from "./schemas/product.schema";
 import { Product } from '../models/product.model';
 import { Cart } from '../cart/types/cart.type';
+import { UserInputError, AuthenticationError } from 'apollo-server';
 
 export const getProductsQuery = async (): Promise<Product[]> =>
     ProductSchema.find();
@@ -20,7 +21,7 @@ export const deleteProductQuery = async (id: string): DocumentQuery<Product, Pro
 
 export const checkoutQuery = async (cart: Cart) => {
     if(!cart) {
-        throw new Error('Checkout Failed. Got undefined cart');
+        throw new AuthenticationError('Checkout Failed. can not get users cart');
     }
     const session: ClientSession = await startSession();
     try {
@@ -46,11 +47,11 @@ const buyProduct = async (id: string, amount: number, session: ClientSession): P
         product.limit -= amount;
         return product.save().catch(error => {
             if (error.errors['limit']) {
-                throw new Error(`product ${product.id} amount ${amount} is bigger than product's stock ${productLimit}`);
+                throw new UserInputError(`product ${product.id} amount ${amount} is bigger than product's stock ${productLimit}`);
             }
             throw error;
         });
     } else if (product.limit === 0) {
-        throw new Error(`try to buy out of stock product ${id}`);
+        throw new UserInputError(`try to buy out of stock product ${id}`);
     }
 }

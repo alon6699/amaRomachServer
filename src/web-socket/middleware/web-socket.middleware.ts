@@ -1,12 +1,11 @@
 import { Socket, Packet } from "socket.io";
-import * as cookie from 'cookie';
 
 import { logger } from "../../logger/logger";
 import { registerNewCart } from "../../cart/cart";
 
 export const registerSocket = (socket: Socket, next: (err?: Error) => void) => {
-    socket.id = cookie.parse(socket.request.headers.cookie)['userId.sig'];
-    registerNewCart(socket.id);
+    const userId: string = registerNewCart(socket);
+    socket.id = userId;
     next();
 }
 
