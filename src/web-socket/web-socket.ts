@@ -1,12 +1,10 @@
 import { webSocket } from "..";
-import { Product } from "../models/product.model";
-import { findProductQuery } from "../database/product.queries";
+import { calculateProductLimit, getCart, removeCart, updateProductInCart } from "../cart/cart";
 import { logger } from "../logger/logger";
-import { removeCart, calculateProductLimit, removeCartProduct, updateCartProduct, getCart } from "../cart/cart";
 
 export const clearCart = async (socketId: string) =>
     await Promise.all(Object.keys(getCart(socketId))
-        .map(id => updateProductInCart(socketId)({ id, amount: 0 })))
+        .map(id => updateProductInCartSocket(socketId)({ id, amount: 0 })))
 
 export const removeSocket = (socketId: string) => async () => {
     logger.info(`A user disconnected ${socketId}`);
@@ -14,27 +12,13 @@ export const removeSocket = (socketId: string) => async () => {
     removeCart(socketId);
 }
 
-const updateProductCartAmount = (socketId: string, product: Product, amount: number) => {
-    amount === 0 ?
-        removeCartProduct(socketId, product._id) :
-        updateCartProduct(socketId, product._id, amount);
-    if (product.limit !== undefined) {
-        const limit: number = calculateProductLimit(product._id, product.limit);
-        webSocket.emit('productChanges', { ...product.toObject(), limit });
-    }
-}
-
-export const updateProductInCart = (socketId: string) => {
+export const updateProductInCartSocket = (socketId: string) => {
     return async ({ id, amount }: { id: string, amount: number }) => {
-        if (amount >= 0) {
-            const product: Product = await findProductQuery(id);
-            if (product.limit !== undefined && amount > product.limit) {
-                logger.error(`Received amount ${amount} bigger than products ${id} limit ${product.limit}`);
-            } else {
-                updateProductCartAmount(socketId, product, amount);
+        updateProductInCart(socketId, id, amount).then(product => {
+            if (product.limit !== undefined) {
+                const limit: number = calculateProductLimit(product._id, product.limit);
+                webSocket.emit('productChanges', { ...product.toObject(), limit });
             }
-        } else {
-            logger.error(`Received negative amount ${amount} to set product ${id} cart amount`);
-        }
+        }).catch(e => logger.error(e.message));
     }
 }

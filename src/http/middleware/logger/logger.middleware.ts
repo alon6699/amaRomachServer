@@ -1,6 +1,5 @@
 import { Next, Context } from "koa";
 import { logger } from "../../../logger/logger";
-import { Packet, Socket } from "socket.io";
 
 export const loggerMiddleware = () => {
     return async (ctx: Context, next: Next) => {
@@ -8,7 +7,7 @@ export const loggerMiddleware = () => {
         let user: string = userId ? 'user ' + userId : '';
         logger.info(`received request from ${user} url ${ctx.url}`);
         await next();
-        const message = `response${user ? ' to ' + user : ''} status ${ctx.status}, body: ${(JSON.stringify(ctx.body))}`;
+        const message = `response${user ? ' to ' + user : ''} status ${ctx.status}, body: ${ctx.body}`;
         ctx.status >= 400 ? logger.error(message) : logger.info(message);
     };
 }

@@ -13,7 +13,7 @@
     "logger": {
         "file": {
             "level": "info",
-            "filename": "D://work/alon/amaRomachLogs/app.log",
+            "filename": "c://alon/amaRomachLogs/app.log",
             "handleExceptions": true,
             "json": true,
             "maxsize": 5242880,
